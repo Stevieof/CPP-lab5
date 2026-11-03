@@ -1,0 +1,5 @@
+[
+  { "sku": "SKU-601", "name": "Хліб житній", "category": "бакалія", "unit": "шт", "price": 32.5, "minStock": 20 },
+  { "Sku": "SKU-602", "Name": "Йогурт полуничний", "Category": "молочне", "Unit": "шт", "Price": 27.9 },
+  { "sku": "SKU-603", "name": "Морозиво пломбір", "category": "заморожене", "unit": "шт", "price": 35, "minStock": 50 }
+]
