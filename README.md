@@ -115,3 +115,26 @@ dotnet run --project src/Cli -- data/products.json    # JSON-імпорт
 dotnet run --project src/Cli -- --invoice             # накладна: рядки product і batch
 dotnet run --project src/Cli -- --env                 # відомості про середовище (лаб. 2)
 ```
+
+## Лабораторна робота №4
+
+Доменна модель у `src/Core/Domain` і `src/Core/Services`:
+
+```text
+Warehouse 1 ──── * Product * ──── партії StockBatch   (StockService: категорії складу)
+Order     1 ──── * OrderLine * ──── 1 Product
+Order.Status: Draft ──Reserve()──► Reserved ──Ship()──► Shipped
+              Draft / Reserved ──Cancel()──► Cancelled
+```
+
+- `Product` — товар із залишком у партіях; інваріант 0 ≤ резерв ≤ залишок, відвантаження за FEFO;
+- `Warehouse` — склад, що приймає лише свої категорії товарів;
+- `StockService` — правило двох сутностей: товар розміщується лише на складі своєї категорії;
+- `Order` — замовлення клієнта з явним станом і резервуванням «все або нічого».
+
+```bash
+dotnet run --project src/Cli -- --domain          # інваріанти Product
+dotnet run --project src/Cli -- --domain-import   # data/domain.json → сутності + помилки
+dotnet run --project src/Cli -- --warehouse       # категорії складу
+dotnet run --project src/Cli -- --order           # стани замовлення
+```

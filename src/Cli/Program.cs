@@ -7,10 +7,23 @@ using System.Text.Json;
 
 Console.OutputEncoding = Encoding.UTF8;
 
-if (args is ["--env", ..] or ["--json"])
+switch (args)
 {
-    PrintEnvironment(args.Contains("--json", StringComparer.OrdinalIgnoreCase));
-    return 0;
+    case ["--env", ..] or ["--json"]:
+        PrintEnvironment(args.Contains("--json", StringComparer.OrdinalIgnoreCase));
+        return 0;
+    case ["--domain"]:
+        DomainDemo.Run();
+        return 0;
+    case ["--domain-import", .. var rest]:
+        DomainDemo.Import(rest.FirstOrDefault() ?? Path.Combine("data", "domain.json"));
+        return 0;
+    case ["--warehouse"]:
+        DomainDemo.Warehouses();
+        return 0;
+    case ["--order"]:
+        DomainDemo.Orders();
+        return 0;
 }
 
 bool invoice = args is ["--invoice", ..];

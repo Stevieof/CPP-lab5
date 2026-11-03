@@ -1,0 +1,7 @@
+[
+  { "sku": "SKU-701", "name": "Масло вершкове 82%", "category": "молочне", "unit": "шт", "price": 89.9, "minStock": 15 },
+  { "sku": "SKU-702", "name": "Борошно пшеничне", "category": "бакалія", "unit": "уп", "price": 0, "minStock": 10 },
+  { "sku": "702-X", "name": "Сметана 20%", "category": "молочне", "unit": "шт", "price": 46.5 },
+  { "sku": "SKU-704", "name": "Сік томатний", "category": "напої", "unit": "пл", "price": 52.0, "minStock": -10 },
+  { "sku": "SKU-705", "name": "Броколі заморожена", "category": "заморожене", "unit": "уп", "price": 74.3 }
+]
