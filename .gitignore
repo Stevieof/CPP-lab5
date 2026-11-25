@@ -482,3 +482,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Лабораторна 5: файл сховища створюється під час запуску
+data/store/

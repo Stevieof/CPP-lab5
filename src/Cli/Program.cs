@@ -1,6 +1,9 @@
 using Core;
+using Core.Abstractions;
 using Core.Dto;
 using Core.Import;
+using Core.Services;
+using Core.Storage;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -24,6 +27,15 @@ switch (args)
     case ["--order"]:
         DomainDemo.Orders();
         return 0;
+    case ["--service", .. var options]:
+    {
+        // Composition root: єдине місце, де названо конкретні класи сховищ.
+        IProductStore store = options.Contains("--file")
+            ? new JsonFileProductStore(Path.Combine("data", "store", "inventory.json"))
+            : new InMemoryProductStore(SampleData.Products());
+        var service = new InventoryService(store);
+        return ServiceDemo.Run(store, service);
+    }
 }
 
 bool invoice = args is ["--invoice", ..];
