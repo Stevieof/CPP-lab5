@@ -153,6 +153,41 @@ public sealed class Product
         return Create(dto.Sku, dto.Name, dto.Category, dto.Unit, dto.Price, dto.MinStock);
     }
 
+    /// <summary>Знімок повного стану для сховища (лабораторна 5).</summary>
+    public ProductStateDto ToState() =>
+        new(Sku, Name, Category, Unit, Price, MinStock, _reserved,
+            [.. _batches.Select(b => new BatchStateDto(b.BatchNo, b.Remaining, b.ExpiryDate))]);
+
+    /// <summary>
+    /// Відновлення зі сховища. Картка проходить Create, партії і резерв — ті самі інваріанти,
+    /// тож пошкоджений файл не створить товар у некоректному стані. Термін придатності тут
+    /// не перевіряється: партію вже прийнято раніше, а прострочення — це факт, а не помилка даних.
+    /// </summary>
+    public static Product FromState(ProductStateDto state)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+        Product product = Create(state.Sku, state.Name, state.Category, state.Unit, state.Price, state.MinStock);
+
+        foreach (BatchStateDto batch in state.Batches ?? [])
+        {
+            if (string.IsNullOrWhiteSpace(batch.BatchNo))
+                throw new ArgumentException($"Партія товару {product.Sku} без номера", nameof(state));
+            if (batch.Remaining <= 0)
+                throw new ArgumentOutOfRangeException(nameof(state), batch.Remaining,
+                    $"Залишок партії {batch.BatchNo} має бути більшим за нуль");
+            if (product._batches.Any(b => b.BatchNo == batch.BatchNo.Trim()))
+                throw new InvalidOperationException($"Партія {batch.BatchNo} товару {product.Sku} повторюється");
+
+            product._batches.Add(new StockBatch(batch.BatchNo.Trim(), batch.Remaining, batch.ExpiryDate));
+        }
+
+        if (state.Reserved < 0 || state.Reserved > product.Stock)
+            throw new InvalidOperationException(
+                $"Резерв {state.Reserved} товару {product.Sku} поза межами 0…{product.Stock}");
+        product._reserved = state.Reserved;
+        return product;
+    }
+
     public override string ToString() =>
         $"{Sku} {Name}: залишок {Stock}, резерв {Reserved}, вільно {Available} {Unit}" +
         (IsBelowMinimum ? $" (нижче мінімуму {MinStock})" : "");
