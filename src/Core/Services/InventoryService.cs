@@ -78,6 +78,13 @@ public sealed class InventoryService(IProductStore store, TimeProvider? clock = 
 
     public Product? Find(string sku) => _store.GetBySku(sku);
 
+    /// <summary>Пошук за умовою, яку передає той, хто викликає (додаткове завдання 2).</summary>
+    public IReadOnlyList<Product> Search(Func<Product, bool> predicate)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+        return [.. _store.GetAll().Where(predicate)];
+    }
+
     private Product Get(string sku) =>
         _store.GetBySku(sku) ?? throw new InvalidOperationException($"Немає товару з артикулом {sku}");
 }

@@ -15,9 +15,10 @@ internal static class ServiceDemo
 
     public static int Run(IProductStore store, InventoryService service)
     {
-        Console.WriteLine($"Сховище: {store.GetType().Name}");
-        if (store is JsonFileProductStore file)
-            Console.WriteLine($"Файл: {Path.GetRelativePath(Environment.CurrentDirectory, file.FilePath)}");
+        Console.WriteLine($"Сховище: {store.GetType().Name}" +
+                          (store is CachingProductStore cache ? $" → {cache.InnerName}" : ""));
+        if (store is JsonFileProductStore or CachingProductStore { Inner: JsonFileProductStore })
+            Console.WriteLine($"Файл: {StoreFactory.DataPath}");
 
         Title("Операції сервісу");
         var yogurt = new ProductDto(Sku, "Йогурт питний 1,5% 400 г", "молочне", "шт", 34.50m, 20);
@@ -47,6 +48,23 @@ internal static class ServiceDemo
         Try("Register з ціною 0", () => service.Register(yogurt with { Sku = "SKU-902", Price = 0 }));
         Try($"Remove {Sku} із залишком", () => service.Remove(Sku));
         Console.WriteLine($"Після відмов:    {service.Find(Sku)}");
+
+        Title("Пошук з умовою Func<Product, bool>");
+        IReadOnlyList<Product> low = service.Search(p => p.IsBelowMinimum);
+        Console.WriteLine($"Search(p => p.IsBelowMinimum): {low.Count} шт.");
+        foreach (Product p in low)
+            Console.WriteLine($"  {p.Sku,-8} {p.Name,-26} залишок {p.Stock,4} < мінімум {p.MinStock}");
+        IReadOnlyList<Product> dairy = service.Search(p => p.Category == "молочне" && p.Available > 0);
+        Console.WriteLine($"Search(молочне з вільним залишком): {string.Join(", ", dairy.Select(p => p.Sku))}");
+
+        Console.WriteLine();
+        if (store is CachingProductStore stats)
+            Console.WriteLine($"Кеш: читань внутрішнього сховища {stats.InnerReads}, відповідей з кешу {stats.CacheHits}");
+        if (store is JsonFileProductStore or CachingProductStore { Inner: JsonFileProductStore })
+        {
+            var json = (JsonFileProductStore)(store is CachingProductStore c ? c.Inner : store);
+            Console.WriteLine($"Читань файлу з диска: {json.FileReads}");
+        }
         return 0;
     }
 

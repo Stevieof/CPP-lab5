@@ -138,3 +138,25 @@ dotnet run --project src/Cli -- --domain-import   # data/domain.json → сут�
 dotnet run --project src/Cli -- --warehouse       # категорії складу
 dotnet run --project src/Cli -- --order           # стани замовлення
 ```
+
+## Лабораторна робота №5
+
+Сервісний шар відокремлено від способу зберігання даних:
+
+```text
+Cli (Program.cs → StoreFactory) ──► InventoryService ──► IProductStore
+                                                          ├── InMemoryProductStore   (словник у пам'яті)
+                                                          ├── JsonFileProductStore   (data/store/inventory.json)
+                                                          └── CachingProductStore    (декоратор-кеш над будь-яким)
+```
+
+- `IProductStore` (`src/Core/Abstractions`) — контракт: `GetAll`, `GetBySku`, `Add`, `Update`, `Remove`;
+- `InventoryService` (`src/Core/Services`) отримує сховище через конструктор і не знає жодної реалізації;
+- у файл пишеться `ProductStateDto` (картка, резерв, партії), відновлення йде через `Product.FromState` з перевіркою інваріантів;
+- конкретні класи сховищ створюються лише в Cli (`StoreFactory`), DI-контейнер не використовується.
+
+```bash
+dotnet run --project src/Cli -- --service                 # сховище в пам'яті (дані з data/clean.csv)
+dotnet run --project src/Cli -- --service --file          # JSON-файл, дані накопичуються між запусками
+dotnet run --project src/Cli -- --service --file --cache  # той самий файл через декоратор-кеш
+```
